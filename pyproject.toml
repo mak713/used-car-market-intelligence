@@ -1,0 +1,25 @@
+[project]
+name = "used-car-market-intelligence"
+version = "0.1.0"
+description = "Incremental used-car listings analytics pipeline: Parquet -> PostgreSQL raw -> dbt -> dimensional warehouse"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pandas",
+    "pyarrow",
+    "psycopg[binary]>=3.2",
+    "huggingface_hub",
+    "dbt-postgres",
+    "prefect>=3",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["integration: needs the project PostgreSQL container"]

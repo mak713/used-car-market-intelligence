@@ -1,0 +1,22 @@
+# PostgreSQL 16 only (blueprint: Docker Compose scope = local Postgres service).
+name: used-car-market-intelligence
+services:
+  postgres:
+    image: postgres:16
+    container_name: used_car_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-used_car}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-used_car_intelligence}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-used_car} -d ${POSTGRES_DB:-used_car_intelligence}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  pgdata:

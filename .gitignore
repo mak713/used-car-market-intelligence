@@ -41,3 +41,9 @@ Thumbs.db
 
 # Power BI temp files
 *.pbit.tmp
+
+# Project-local tooling
+.tools/
+.cache/
+.uv-python/
+.prefect/
