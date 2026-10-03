@@ -1,6 +1,6 @@
 # Implementation status
 
-_Last updated: 2026-10-03. Authoritative spec: `docs/…Blueprint.docx`; project rules: `CLAUDE.md`._
+_Last updated: 2026-10-03. Authoritative spec: `docs/…Blueprint.docx`; project rules are kept in a local, gitignored agent file (not part of the published repo)._
 
 ## Current phase
 Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Phase 7 docs written. Remaining: Power BI Desktop work (human): .pbix, refresh, screenshots.
@@ -9,7 +9,7 @@ Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Pha
 - Branch renamed `master` → `main` (baseline commit preserved; `.git/config.lock` is a sandbox
   /dev/null overlay so git could not rewrite config, harmless — no remotes/upstreams exist).
 - Toolchain: uv 0.12.23 in `.tools/` (fetched from the PyPI wheel), Python 3.12.15, `.venv/` via
-  `UV_CACHE_DIR=$PWD/.cache/uv UV_PYTHON_INSTALL_DIR=$PWD/.tools/python .tools/uv sync`.
+  `uv sync` (a project-local uv under gitignored `.tools/` was used during development only).
   dbt-core 1.12.5, prefect 3.8.7, pyarrow 25.0.1, pandas 3.0.6, psycopg 3.3.6.
 - Docker Postgres 16 (`docker compose up -d`, container `used_car_postgres`, 127.0.0.1:5432), healthy.
 - Source preflight (live, revision `1e325fd8d9d05895fc2d26a2eac5a36f3ef07487`): 30 Parquet partitions
@@ -23,8 +23,7 @@ Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Pha
   years 1987..2027; low>high 0; negative mileage/DOM 0. Card license: **CC BY-NC 4.0** (attribute; non-commercial).
 - Code written (Phase 1): `src/db/{config,bootstrap,ddl/*}`, `src/ingestion/{contract,normalize,source,runs,loader,pipeline,cli}.py`,
   synthetic fixtures `tests/fixtures/synthetic.py`.
-- **Verified:** `.venv/bin/python -m pytest tests/unit -q` → 21 passed.
-- **Written but NOT yet run:** `tests/integration/*` (need DB).
+- Integration tests (`tests/integration/*`) are executed against the project Postgres; see results below.
 
 ## Decisions / deviations
 - Listing scope: fact includes Used, Certified, Third-Party Certified (types kept distinct); excludes New. (user-approved)
@@ -52,8 +51,14 @@ Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Pha
 ## Phase 3–5 results
 - Phase 3: eight `sql/0N_*.sql` analyses all execute and return rows (`tests/integration/test_sql_analyses.py`); notes in `docs/sql_analysis.md`; EXPLAIN (ANALYZE, BUFFERS) of query 05 documented in `docs/explain/` (6,019 ms nested loop -> 67.5 ms after restructuring; cause = multi-column join mis-estimate, not stale stats).
 - Phase 4: Prefect flow `used_car_market_pipeline` (`src/orchestration/flow.py`, run: `HF_HOME=$PWD/.cache/hf .venv/bin/python -m src.orchestration.flow [--revision SHA] [--source-dir D] [--date-from/--date-to]`). Only the download task retries (2x, 5 s). Run state in `meta.pipeline_runs` (counters, dbt_status, smoke_status, error_summary). Prefect runs an ephemeral local server with state in gitignored `.prefect/`.
-- Phase 5: `scripts/run_acceptance.py` -> `docs/acceptance_results.md`: ACCEPTANCE PASS (clean bootstrap, idempotent rerun, real-partition incremental 21+9 files, invalid schema + corrected rerun, controlled dbt failure + corrected rerun, download retry 3 calls, pytest 39 passed). Pinned source revision 1e325fd8…; Hub head equalled it at run time.
+- Phase 5: `scripts/run_acceptance.py` -> `docs/acceptance_results.md`: ACCEPTANCE PASS (clean bootstrap, idempotent rerun, real-partition incremental 21+9 files, invalid schema + corrected rerun, controlled dbt failure + corrected rerun, download retry 3 calls, pytest 40 passed). Pinned source revision 1e325fd8…; Hub head equalled it at run time.
 - Main DB left in the full built state (24,608 raw; 22,098 fact).
+
+## Post-audit corrections (final)
+- dbt reconciliation test and Prefect smoke check now compare `fct_listings` to `int_listings_deduped` filtered to the fact listing types (latest observation decides scope), not to any-historical in-scope raw observation.
+- New synthetic transition test (`test_fact_inclusion_follows_latest_observation_listing_type`): Used->New listing absent, New->Used present. Live data still has zero cross-file overlap.
+- Public setup uses `uv sync`; local agent files (`CLAUDE.md`, `.claude/`) are gitignored.
+- Re-verified: `pytest tests` 40 passed; `dbt build` PASS=54; acceptance re-run ACCEPTANCE PASS; all eight SQL analyses execute (`test_sql_analyses.py`).
 
 ## Not verifiable here
 - Power BI refresh / .pbix / screenshots: needs Power BI Desktop (human).

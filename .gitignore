@@ -47,3 +47,7 @@ Thumbs.db
 .cache/
 .uv-python/
 .prefect/
+
+# Local agent artifacts
+CLAUDE.md
+.claude/

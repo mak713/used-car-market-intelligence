@@ -1,6 +1,6 @@
 # Acceptance results
 
-Run started 2026-10-03 22:24 UTC by `scripts/run_acceptance.py`. All values below were measured in that run.
+Run started 2026-10-03 23:46 UTC by `scripts/run_acceptance.py`. All values below were measured in that run.
 
 - Source: `rebrowser/autotrader-dataset`, pinned revision `1e325fd8d9d05895fc2d26a2eac5a36f3ef07487` (Hub head at run time: `1e325fd8d9d05895fc2d26a2eac5a36f3ef07487`).
 - Real-source behaviour (scenarios 1–3) is kept separate from synthetic-fixture behaviour (scenarios 4–7); the live source has no cross-file overlap, so upsert and dedupe are demonstrated on fixtures only.
@@ -18,7 +18,7 @@ Run started 2026-10-03 22:24 UTC by `scripts/run_acceptance.py`. All values belo
 
 ## 1. Clean bootstrap (fresh DB, real source, full pipeline)
 
-- PASS — flow exit code 0 — `rc=0, 38.9s`
+- PASS — flow exit code 0 — `rc=0, 35.1s`
 - PASS — 30 partitions discovered and processed — `{'status': 'success', 'files_discovered': 30, 'files_processed': 30, 'rows_read': 24608, 'rows_inserted': 24608, 'rows_updated': 0, 'rows_unchanged': 0, 'dbt_status': 'success', 'smoke_status': 'success', 'error_summary': None}`
 - PASS — raw rows == rows read == inserted — `raw=24608`
 - PASS — dbt build green — `PASS/WARN/ERROR/SKIP=(54, 0, 0, 0)`
@@ -28,7 +28,7 @@ Run started 2026-10-03 22:24 UTC by `scripts/run_acceptance.py`. All values belo
 
 ## 2. Idempotent rerun (no source change)
 
-- PASS — flow exit code 0 — `27.6s`
+- PASS — flow exit code 0 — `22.8s`
 - PASS — zero files processed / zero rows read — `{'status': 'success', 'files_discovered': 30, 'files_processed': 0, 'rows_read': 0, 'rows_inserted': 0, 'rows_updated': 0, 'rows_unchanged': 0, 'dbt_status': 'success', 'smoke_status': 'success', 'error_summary': None}`
 - PASS — all table counts and key fingerprints unchanged — `diff={}`
 - PASS — only pipeline_runs grew (by 1)
@@ -57,7 +57,7 @@ Run started 2026-10-03 22:24 UTC by `scripts/run_acceptance.py`. All values belo
 
 - PASS — flow fails visibly — `rc=1`
 - PASS — run recorded failed with dbt_status=failed — `failed/failed`
-- PASS — error summary mentions dbt — `RuntimeError: dbt build failed: [0m22:27:22  55 of 55 ERROR creating sql table model warehouse.zz_acceptance_broken ......... [[31mERROR[0m in 0.04s] | [0m2`
+- PASS — error summary mentions dbt — `RuntimeError: dbt build failed: [0m23:48:51  55 of 55 ERROR creating sql table model warehouse.zz_acceptance_broken ......... [[31mERROR[0m in 0.04s] | [0m2`
 - PASS — smoke checks not run after dbt failure
 - PASS — corrected rerun succeeds — `success/success/success`
 
@@ -67,7 +67,7 @@ Run started 2026-10-03 22:24 UTC by `scripts/run_acceptance.py`. All values belo
 
 ## 7. Python test suite (synthetic fixtures; includes upsert + dedupe + idempotency)
 
-- PASS — pytest passes — `39 passed in 8.67s`
+- PASS — pytest passes — `40 passed in 14.66s`
 
 ## Final state of the project database
 

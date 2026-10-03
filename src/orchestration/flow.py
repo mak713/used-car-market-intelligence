@@ -82,10 +82,10 @@ def run_pipeline_smoke_checks(run_id):
             "select count(*) = count(distinct primary_key) and count(*) > 0 from raw.autotrader_records",
         "fct_listings non-empty and unique listing_id":
             "select count(*) > 0 and count(*) = count(distinct listing_id) from warehouse.fct_listings",
-        "fact == distinct used/certified listings in raw":
+        "fact == latest deduplicated listings with an in-scope listing type":
             """select (select count(*) from warehouse.fct_listings) =
-                      (select count(distinct listing_id) from raw.autotrader_records
-                        where payload->>'listingType' in ('Used','Certified','Third-Party Certified'))""",
+                      (select count(*) from intermediate.int_listings_deduped
+                        where listing_type in ('Used','Certified','Third-Party Certified'))""",
         "no orphan fact keys":
             """select count(*) = 0 from warehouse.fct_listings f
                left join warehouse.dim_vehicle v using (vehicle_key)

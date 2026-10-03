@@ -56,7 +56,7 @@ regional mix-adjusted index, reduced-price profile, seller concentration, first-
 ```bash
 cp .env.example .env                                   # dev-only credentials
 docker compose up -d                                   # PostgreSQL 16 on 127.0.0.1:5432
-UV_CACHE_DIR=$PWD/.cache/uv .tools/uv sync             # or: install uv, then `uv sync` (Python 3.12)
+uv sync                                                # requires uv installed (Python 3.12)
 export HF_HOME=$PWD/.cache/hf
 .venv/bin/python -m src.orchestration.flow             # discover -> load -> dbt build -> smoke checks
 .venv/bin/python -m pytest tests                       # unit + integration (integration needs the container)
@@ -66,7 +66,7 @@ export HF_HOME=$PWD/.cache/hf
 dbt can be run directly: `.venv/bin/python -m src.orchestration.dbt_runner build`.
 
 ## Tests and acceptance evidence
-`pytest`: 39 tests (23 unit, 16 integration) pass. The acceptance suite (`docs/acceptance_results.md`) passed: clean
+`pytest`: 40 tests (23 unit, 17 integration) pass. The acceptance suite (`docs/acceptance_results.md`) passed: clean
 bootstrap, idempotent rerun, incremental run on real partitions, invalid-schema file (+ corrected rerun), controlled dbt
 failure (+ corrected rerun) and download retry. **Real-source behaviour and fixture behaviour are separated:** the live
 source has no cross-file overlap, so the changed-record upsert and deduplication paths are demonstrated only on
