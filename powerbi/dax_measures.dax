@@ -1,0 +1,51 @@
+// Create these in a dedicated "Measures" table (Home > Enter data > empty table named "_Measures"),
+// or on fct_listings. Format strings are noted in comments.
+// DATA HONESTY: reference values are the midpoint of a source-provided KBB fair-price RANGE.
+// Never label them as listing / asking / average price.
+
+Listing Count = COUNTROWS ( fct_listings )                                   // whole number
+
+Market-Value Eligible Listings =
+    CALCULATE ( [Listing Count], fct_listings[is_market_value_eligible] = TRUE () )
+
+Median Reference Value = MEDIAN ( fct_listings[reference_value_midpoint] )   // currency, 0 dp; blanks for ineligible listings are ignored
+
+Median Mileage = MEDIAN ( fct_listings[mileage] )                            // #,0
+
+Median Days on Market = MEDIAN ( fct_listings[days_on_market] )              // 0
+
+Reduced Price Rate =
+    DIVIDE ( CALCULATE ( [Listing Count], fct_listings[is_reduced_price] = TRUE () ), [Listing Count] )   // 0.0%
+
+Hot Listing Rate =
+    DIVIDE ( CALCULATE ( [Listing Count], fct_listings[is_hot] = TRUE () ), [Listing Count] )             // 0.0%
+
+Certified Inventory Share =
+    // Certified + Third-Party Certified (source listing types kept distinct in the data)
+    DIVIDE (
+        CALCULATE ( [Listing Count], fct_listings[listing_type] IN { "Certified", "Third-Party Certified" } ),
+        [Listing Count]
+    )                                                                                                      // 0.0%
+
+Median Reference-Value Spread = MEDIAN ( fct_listings[reference_value_spread] )   // currency, 0 dp (KBB range width)
+
+// ---- supporting measures for page 2 / page 3 -------------------------------------------------
+
+Slow-Moving Share =   // days on market >= 60 (same definition as sql/04)
+    DIVIDE ( CALCULATE ( [Listing Count], fct_listings[days_on_market] >= 60 ), [Listing Count] )
+
+Model-Year Baseline Reference Value =   // median over all listings of the same make/model/model year
+    CALCULATE (
+        [Median Reference Value],
+        ALLEXCEPT ( dim_vehicle, dim_vehicle[make_name], dim_vehicle[model_name], dim_vehicle[year] )
+    )
+
+Trim Premium % =
+    // Differs slightly from sql/02, whose baseline is the median of trim medians.
+    DIVIDE ( [Median Reference Value], [Model-Year Baseline Reference Value] ) - 1                          // +0.0%;-0.0%
+
+Top 5 Seller Share =   // known sellers only (the Unknown seller member is excluded)
+    VAR Known = CALCULATETABLE ( VALUES ( dim_seller[seller_id] ), dim_seller[is_unknown_seller] = FALSE () )
+    VAR Top5  = TOPN ( 5, Known, [Listing Count], DESC )
+    VAR Total = CALCULATE ( [Listing Count], dim_seller[is_unknown_seller] = FALSE () )
+    RETURN DIVIDE ( CALCULATE ( [Listing Count], Top5 ), Total )                                          // 0.0%
