@@ -3,7 +3,7 @@
 _Last updated: 2026-10-03. Authoritative spec: `docs/…Blueprint.docx`; project rules: `CLAUDE.md`._
 
 ## Current phase
-Phases 0–5 complete & evidenced. Next: Phase 6 (Power BI handoff materials) and Phase 7 (docs/QA).
+Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Phase 7 docs written. Remaining: Power BI Desktop work (human): .pbix, refresh, screenshots.
 
 ## Completed
 - Branch renamed `master` → `main` (baseline commit preserved; `.git/config.lock` is a sandbox
@@ -61,5 +61,5 @@ Phases 0–5 complete & evidenced. Next: Phase 6 (Power BI handoff materials) an
 ## Blockers
 None (next human step is Power BI Desktop, after Phase 6 materials exist).
 
-## Next
-Phase 6: `powerbi/` handoff (views not required; relationship spec, DAX, page specs, Windows setup). Phase 7: README, architecture, data dictionary, final QA.
+## Next (human)
+Build the report per `powerbi/README.md`. (Done by agent:  `powerbi/` handoff (views not required; relationship spec, DAX, page specs, Windows setup). Phase 7: README, architecture, data dictionary, final QA. Phase 6 materials in `powerbi/`; Phase 7 README, architecture, data dictionary, source_preflight.)
