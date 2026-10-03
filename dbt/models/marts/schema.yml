@@ -1,0 +1,48 @@
+version: 2
+models:
+  - name: fct_listings
+    description: "One used/certified listing (latest observed record). Reference-value fields are a KBB range, not a listing price."
+    columns:
+      - name: listing_id
+        tests: [unique, not_null]
+      - name: listing_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: ['Used', 'Certified', 'Third-Party Certified']}
+      - name: vehicle_key
+        tests: [not_null, {relationships: {arguments: {to: ref('dim_vehicle'), field: vehicle_key}}}]
+      - name: seller_key
+        tests: [not_null, {relationships: {arguments: {to: ref('dim_seller'), field: seller_key}}}]
+      - name: geography_key
+        tests: [not_null, {relationships: {arguments: {to: ref('dim_geography'), field: geography_key}}}]
+      - name: first_seen_date_key
+        tests: [not_null, {relationships: {arguments: {to: ref('dim_date'), field: date_key}}}]
+      - name: last_seen_date_key
+        tests: [not_null, {relationships: {arguments: {to: ref('dim_date'), field: date_key}}}]
+      - name: source_file_date_key
+        tests: [not_null, {relationships: {arguments: {to: ref('dim_date'), field: date_key}}}]
+  - name: dim_vehicle
+    columns:
+      - name: vehicle_key
+        tests: [unique, not_null]
+  - name: dim_seller
+    columns:
+      - name: seller_key
+        tests: [unique, not_null]
+      - name: seller_id
+        tests: [unique]
+  - name: dim_geography
+    columns:
+      - name: geography_key
+        tests: [unique, not_null]
+      - name: region
+        tests:
+          - accepted_values:
+              arguments: {values: ['Northeast', 'Midwest', 'South', 'West', 'Unknown']}
+  - name: dim_date
+    columns:
+      - name: date_key
+        tests: [unique, not_null]
+      - name: full_date
+        tests: [unique, not_null]

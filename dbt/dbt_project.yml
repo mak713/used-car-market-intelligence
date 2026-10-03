@@ -1,0 +1,31 @@
+name: used_car_intelligence
+version: "1.0.0"
+config-version: 2
+profile: used_car_intelligence
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  used_car_intelligence:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: table
+    marts:
+      +schema: warehouse
+      +materialized: table
+
+seeds:
+  used_car_intelligence:
+    +schema: warehouse
+    state_regions:
+      +column_types: {state_code: text, state_name: text, region: text}
+
+vars:
+  fact_listing_types: "('Used', 'Certified', 'Third-Party Certified')"

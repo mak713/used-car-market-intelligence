@@ -1,0 +1,8 @@
+version: 2
+models:
+  - name: stg_autotrader_listings
+    columns:
+      - name: primary_key
+        tests: [unique, not_null]
+      - name: listing_id
+        tests: [not_null]

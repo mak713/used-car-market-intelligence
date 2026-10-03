@@ -1,0 +1,9 @@
+version: 2
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: autotrader_records
+        columns:
+          - name: primary_key
+            tests: [unique, not_null]
