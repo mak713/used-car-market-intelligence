@@ -1,0 +1,79 @@
+Sort  (cost=6569.63..6569.64 rows=1 width=152) (actual time=66.992..67.002 rows=30 loops=1)
+  Sort Key: (rank() OVER (?))
+  Sort Method: quicksort  Memory: 27kB
+  Buffers: shared hit=2389
+  CTE listing_base
+    ->  Hash Join  (cost=657.81..2321.07 rows=19864 width=32) (actual time=4.058..17.274 rows=19858 loops=1)
+          Hash Cond: (f_1.vehicle_key = v_1.vehicle_key)
+          Buffers: shared hit=1212
+          ->  Hash Join  (cost=146.01..1536.14 rows=19864 width=48) (actual time=1.031..9.870 rows=19858 loops=1)
+                Hash Cond: (f_1.geography_key = g.geography_key)
+                Buffers: shared hit=948
+                ->  Seq Scan on fct_listings f_1  (cost=0.00..1116.98 rows=19869 width=72) (actual time=0.008..5.293 rows=19869 loops=1)
+                      Filter: is_market_value_eligible
+                      Rows Removed by Filter: 2229
+                      Buffers: shared hit=896
+                ->  Hash  (cost=93.79..93.79 rows=4178 width=42) (actual time=0.999..0.999 rows=4178 loops=1)
+                      Buckets: 8192  Batches: 1  Memory Usage: 370kB
+                      Buffers: shared hit=52
+                      ->  Seq Scan on dim_geography g  (cost=0.00..93.79 rows=4178 width=42) (actual time=0.006..0.422 rows=4178 loops=1)
+                            Filter: (state_code IS NOT NULL)
+                            Rows Removed by Filter: 1
+                            Buffers: shared hit=52
+          ->  Hash  (cost=374.13..374.13 rows=11013 width=50) (actual time=2.983..2.984 rows=11013 loops=1)
+                Buckets: 16384  Batches: 1  Memory Usage: 1045kB
+                Buffers: shared hit=264
+                ->  Seq Scan on dim_vehicle v_1  (cost=0.00..374.13 rows=11013 width=50) (actual time=0.005..1.175 rows=11013 loops=1)
+                      Buffers: shared hit=264
+  ->  WindowAgg  (cost=4248.52..4248.56 rows=1 width=152) (actual time=66.935..66.972 rows=30 loops=1)
+        Buffers: shared hit=2386
+        ->  Sort  (cost=4248.52..4248.53 rows=1 width=80) (actual time=66.921..66.927 rows=30 loops=1)
+              Sort Key: by_state.median_value_index DESC
+              Sort Method: quicksort  Memory: 26kB
+              Buffers: shared hit=2386
+              ->  Subquery Scan on by_state  (cost=4248.48..4248.51 rows=1 width=80) (actual time=63.739..66.907 rows=30 loops=1)
+                    Buffers: shared hit=2383
+                    ->  GroupAggregate  (cost=4248.48..4248.51 rows=1 width=80) (actual time=63.738..66.902 rows=30 loops=1)
+                          Group Key: b.region, b.state_code
+                          Filter: (count(*) >= 50)
+                          Rows Removed by Filter: 20
+                          Buffers: shared hit=2383
+                          ->  Sort  (cost=4248.48..4248.48 rows=1 width=104) (actual time=63.578..63.954 rows=10415 loops=1)
+                                Sort Key: b.region, b.state_code
+                                Sort Method: quicksort  Memory: 898kB
+                                Buffers: shared hit=2383
+                                ->  Hash Join  (cost=3694.76..4248.47 rows=1 width=104) (actual time=38.077..60.263 rows=10415 loops=1)
+                                      Hash Cond: ((b.make_name = n.make_name) AND (b.model_name = n.model_name) AND (b.year = n.year))
+                                      Buffers: shared hit=2380
+                                      ->  CTE Scan on listing_base b  (cost=0.00..397.28 rows=19864 width=164) (actual time=4.060..22.377 rows=19858 loops=1)
+                                            Buffers: shared hit=1212
+                                      ->  Hash  (cost=3688.33..3688.33 rows=367 width=25) (actual time=33.996..34.000 rows=554 loops=1)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 41kB
+                                            Buffers: shared hit=1168
+                                            ->  Subquery Scan on n  (cost=3320.44..3688.33 rows=367 width=25) (actual time=25.806..33.882 rows=554 loops=1)
+                                                  Buffers: shared hit=1168
+                                                  ->  GroupAggregate  (cost=3320.44..3684.66 rows=367 width=25) (actual time=25.804..33.837 rows=554 loops=1)
+                                                        Group Key: v.make_name, v.model_name, v.year
+                                                        Filter: (count(*) >= 10)
+                                                        Rows Removed by Filter: 3437
+                                                        Buffers: shared hit=1168
+                                                        ->  Sort  (cost=3320.44..3370.11 rows=19869 width=23) (actual time=25.747..26.551 rows=19869 loops=1)
+                                                              Sort Key: v.make_name, v.model_name, v.year
+                                                              Sort Method: quicksort  Memory: 1819kB
+                                                              Buffers: shared hit=1163
+                                                              ->  Hash Join  (cost=511.79..1901.97 rows=19869 width=23) (actual time=2.788..11.655 rows=19869 loops=1)
+                                                                    Hash Cond: (f.vehicle_key = v.vehicle_key)
+                                                                    Buffers: shared hit=1160
+                                                                    ->  Seq Scan on fct_listings f  (cost=0.00..1116.98 rows=19869 width=39) (actual time=0.003..5.302 rows=19869 loops=1)
+                                                                          Filter: is_market_value_eligible
+                                                                          Rows Removed by Filter: 2229
+                                                                          Buffers: shared hit=896
+                                                                    ->  Hash  (cost=374.13..374.13 rows=11013 width=50) (actual time=2.740..2.740 rows=11013 loops=1)
+                                                                          Buckets: 16384  Batches: 1  Memory Usage: 1045kB
+                                                                          Buffers: shared hit=264
+                                                                          ->  Seq Scan on dim_vehicle v  (cost=0.00..374.13 rows=11013 width=50) (actual time=0.004..0.974 rows=11013 loops=1)
+                                                                                Buffers: shared hit=264
+Planning:
+  Buffers: shared hit=208
+Planning Time: 0.772 ms
+Execution Time: 67.513 ms
