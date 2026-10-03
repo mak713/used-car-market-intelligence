@@ -3,7 +3,7 @@
 _Last updated: 2026-10-03. Authoritative spec: `docs/…Blueprint.docx`; project rules: `CLAUDE.md`._
 
 ## Current phase
-Phases 0–2 complete. Next: Phase 3 (SQL analytics).
+Phases 0–5 complete & evidenced. Next: Phase 6 (Power BI handoff materials) and Phase 7 (docs/QA).
 
 ## Completed
 - Branch renamed `master` → `main` (baseline commit preserved; `.git/config.lock` is a sandbox
@@ -49,8 +49,17 @@ Phases 0–2 complete. Next: Phase 3 (SQL analytics).
 - kbb_vehicle_id 0 -> NULL. vehicle_age_years = max(year(last_seen_at) - model year, 0).
 - dim_geography keeps ZIP/city/state grain (176 ZIPs carry >1 city name in the real data; genuine, e.g. Boston/Allston).
 
+## Phase 3–5 results
+- Phase 3: eight `sql/0N_*.sql` analyses all execute and return rows (`tests/integration/test_sql_analyses.py`); notes in `docs/sql_analysis.md`; EXPLAIN (ANALYZE, BUFFERS) of query 05 documented in `docs/explain/` (6,019 ms nested loop -> 67.5 ms after restructuring; cause = multi-column join mis-estimate, not stale stats).
+- Phase 4: Prefect flow `used_car_market_pipeline` (`src/orchestration/flow.py`, run: `HF_HOME=$PWD/.cache/hf .venv/bin/python -m src.orchestration.flow [--revision SHA] [--source-dir D] [--date-from/--date-to]`). Only the download task retries (2x, 5 s). Run state in `meta.pipeline_runs` (counters, dbt_status, smoke_status, error_summary). Prefect runs an ephemeral local server with state in gitignored `.prefect/`.
+- Phase 5: `scripts/run_acceptance.py` -> `docs/acceptance_results.md`: ACCEPTANCE PASS (clean bootstrap, idempotent rerun, real-partition incremental 21+9 files, invalid schema + corrected rerun, controlled dbt failure + corrected rerun, download retry 3 calls, pytest 39 passed). Pinned source revision 1e325fd8…; Hub head equalled it at run time.
+- Main DB left in the full built state (24,608 raw; 22,098 fact).
+
+## Not verifiable here
+- Power BI refresh / .pbix / screenshots: needs Power BI Desktop (human).
+
 ## Blockers
-None.
+None (next human step is Power BI Desktop, after Phase 6 materials exist).
 
 ## Next
-Phase 3: eight SQL analyses in `sql/`, EXPLAIN notes; then Phase 4 Prefect.
+Phase 6: `powerbi/` handoff (views not required; relationship spec, DAX, page specs, Windows setup). Phase 7: README, architecture, data dictionary, final QA.
