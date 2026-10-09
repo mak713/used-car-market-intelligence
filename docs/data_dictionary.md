@@ -3,7 +3,7 @@
 **Reference value** = midpoint of the source-provided KBB fair-price range (`kbb_fair_price_low`/`high`). It is not a
 listing, asking or sale price (`salePrice` is redacted in the public sample).
 
-## fct_listings — one used/certified listing (latest observed record); 22,098 rows
+## fct_listings — one used/certified listing (latest observed record); 23,950 rows in the final refreshed state
 | Column | Meaning |
 |---|---|
 | `listing_id` | Source listing id (PK; unique, not null) |

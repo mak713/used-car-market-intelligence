@@ -1,9 +1,9 @@
-# Power BI handoff
+# Power BI report
 
-Everything needed to build the three-page report from the final warehouse. **Not done / not verified by
-the engineering agent:** the `.pbix` file, the report refresh, visual QA and screenshots — they need Power BI
-Desktop (Windows) and are the human steps below. The DAX in `dax_measures.dax` has **not** been executed in
-Power BI; check it against the expected values in section 4.
+`Used_Car_Market_Intelligence.pbix` is the finished three-page report (screenshots in `../docs/images/`). It was built
+in Power BI Desktop (Windows), refreshed successfully against the latest warehouse state and visually reviewed. The
+sections below document the connection, model, page design and measure checks so the report can be rebuilt or
+refreshed. The `.pbix` embeds the imported data (CC BY-NC 4.0 — see root README attribution).
 
 ## 1. Connect (Windows Power BI Desktop, Import mode)
 
@@ -59,27 +59,30 @@ Power BI; check it against the expected values in section 4.
 - Table: slow-moving cohorts — `make_name`, `model_name`, Listing Count, Median Days on Market, Slow-Moving Share
   (visual filter Listing Count >= 25, sort by Slow-Moving Share desc). Compare with `sql/04`.
 
-## 4. Check your measures (expected values, full 30-partition load, no slicers)
+## 4. Measure checks (no slicers)
 
-Measured from the warehouse built from source revision `1e325fd8…` (see `docs/acceptance_results.md`):
+The report shows the **latest refreshed** values (35 partitions, revision `f9511a90…`). The original 30-partition values are kept for reference (`docs/acceptance_results.md`).
 
-| Measure | Expected |
-|---|---|
-| Listing Count | 22,098 |
-| Market-Value Eligible Listings | 19,869 |
-| Median Reference Value | 27,210 |
-| Median Mileage | 43,750.5 |
-| Median Days on Market | 12 |
-| Reduced Price Rate | 22.32% |
-| Hot Listing Rate | 2.79% |
-| Certified Inventory Share | 14.68% (Certified 2,918 + Third-Party Certified 325) |
-| Median Reference-Value Spread | 2,600 |
-| Listings with a known seller | 22,085 (13 are the Unknown seller) |
-| First-seen date range | 2026-08-21 – 2026-09-19 |
 
-## 5. Human steps and acceptance
+| Measure | Latest refresh (report) | Original 30-partition build |
+|---|---|---|
+| Listing Count | 23,950 | 22,098 |
+| Market-Value Eligible Listings | 21,611 | 19,869 |
+| Median Reference Value | 27,043 | 27,210 |
+| Median Mileage | 43,819.5 | 43,750.5 |
+| Median Days on Market | 12 | 12 |
+| Reduced Price Rate | 22.58% | 22.32% |
+| Hot Listing Rate | 2.79% | 2.79% |
+| Certified Inventory Share | 14.55% | 14.68% |
+| Median Reference-Value Spread | 2,600 | 2,600 |
+| Listings with a known seller | 23,935 (15 Unknown-seller facts) | 22,085 |
+| First-seen date range | 2026-08-21 – 2026-09-24 | 2026-08-21 – 2026-09-19 |
 
-1. Build the model and three pages above; save as `powerbi/Used_Car_Market_Intelligence.pbix`.
-2. Confirm the section-4 values; confirm the model only contains the five `warehouse` tables and all relationships are single-direction.
-3. Refresh test: run the pipeline (`HF_HOME=$PWD/.cache/hf .venv/bin/python -m src.orchestration.flow`), then Home > Refresh in Desktop; it must succeed with only warehouse tables.
-4. Take screenshots of the three pages into `docs/images/` (`page1_market_overview.png`, …). Commit the `.pbix` only if it contains no data you are unwilling to publish (it embeds the imported data; the source is CC BY-NC 4.0 — see README attribution).
+## 5. Refresh procedure and status
+
+Refresh test **passed**: after the pipeline loaded the 5 newly published partitions, Home > Refresh succeeded with
+only the five `warehouse` tables, and the values in section 4 matched.
+
+To refresh again: start Postgres (`docker compose up -d`), run `HF_HOME=$PWD/.cache/hf .venv/bin/python -m
+src.orchestration.flow`, then Home > Refresh in Desktop. Model checks: only the five `warehouse` tables are
+imported and all relationships are single-direction.

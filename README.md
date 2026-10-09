@@ -12,6 +12,13 @@ Hugging Face daily Parquet partitions
   -> 8 SQL analyses + Power BI   (orchestrated by Prefect: used_car_market_pipeline)
 ```
 
+![Market Overview page](docs/images/page1_market_overview.png)
+
+## Business questions
+What does the used-vehicle inventory look like by make, body style, region and listing type? How does KBB reference
+value vary with mileage and trim? Which cohorts sit longest on the market? How concentrated is inventory among
+sellers, and what do reduced-price listings look like? All answers are descriptive and cross-sectional.
+
 ## Data source, license and a hard limitation
 Source: [`rebrowser/autotrader-dataset`](https://huggingface.co/datasets/rebrowser/autotrader-dataset) (Rebrowser,
 public preview sample, **CC BY-NC 4.0** — attribution required, non-commercial use only; see Rebrowser's terms).
@@ -42,7 +49,7 @@ when old partitions roll off upstream. **A no-change rerun processes 0 files and
 identical** (measured, `docs/acceptance_results.md`). `--revision SHA` pins the source for reproducible runs.
 
 ## Data quality
-Raw: PK/uniqueness, hash checkpointing. dbt: 54 nodes in the last build = 1 seed + 8 models + 45 tests — unique/not-null keys,
+Raw: PK/uniqueness, hash checkpointing. dbt: 54 nodes in the final build = 1 seed + 8 models + 45 tests — unique/not-null keys,
 foreign-key relationships, accepted listing types/regions, no negative mileage or days on market, no impossible model
 year, valid reference ranges (no low > high, midpoint within range), no orphan fact keys, fact-count reconciliation,
 dedupe keeps the latest observation. Pipeline smoke checks include a guard that the warehouse has no listing/asking-price column.
@@ -66,27 +73,53 @@ export HF_HOME=$PWD/.cache/hf
 dbt can be run directly: `.venv/bin/python -m src.orchestration.dbt_runner build`.
 
 ## Tests and acceptance evidence
-`pytest`: 40 tests (23 unit, 17 integration) pass. The acceptance suite (`docs/acceptance_results.md`) passed: clean
+`pytest`: 40 tests (23 unit, 17 integration) pass. The acceptance suite (`docs/acceptance_results.md`, a point-in-time run on the original 30-partition revision) passed: clean
 bootstrap, idempotent rerun, incremental run on real partitions, invalid-schema file (+ corrected rerun), controlled dbt
 failure (+ corrected rerun) and download retry. **Real-source behaviour and fixture behaviour are separated:** the live
 source has no cross-file overlap, so the changed-record upsert and deduplication paths are demonstrated only on
 deterministic synthetic fixtures (`tests/`).
 
-## Measured scale (source revision `1e325fd8…`, 30 daily partitions, 2026-08-21 – 2026-09-19)
+## Measured scale
+**Final refreshed state** (source revision `f9511a90…`; 35 daily partitions held locally, 2026-08-21 – 2026-09-24):
 | | |
 |---|---|
-| Raw records | 24,608 |
-| `fct_listings` | 22,098 (19,869 market-value eligible; 2,510 New excluded) |
-| `dim_vehicle` / `dim_seller` / `dim_geography` / `dim_date` | 11,013 / 8,191 / 4,179 / 42 |
+| Raw records | 26,845 |
+| `fct_listings` | 23,950 (21,611 market-value eligible; 2,895 New excluded) |
+| `dim_vehicle` / `dim_seller` / `dim_geography` / `dim_date` | 11,590 / 8,607 / 4,318 / 48 |
 | dbt | 1 seed, 8 models, 45 tests — all pass |
 | SQL analyses | 8, all return rows |
 | Cross-file `listingId` overlap in the real data | 0 (so `source_observation_count` = 1) |
 
-## Power BI
-Model, DAX, page specs and expected KPI values: `powerbi/`. **The `.pbix`, report refresh and screenshots are not yet
-produced** (they require Power BI Desktop); `docs/images/` is empty until then.
+**Refresh demonstration.** The pipeline was first built from revision `1e325fd8…` (30 partitions, 24,608 raw
+records, 22,098 facts; the acceptance run in `docs/acceptance_results.md` documents that state). The source later
+published five new partitions (2026-09-20 – 2026-09-24); a normal pipeline run processed only those 5 files
+(2,237 rows inserted), re-ran dbt, and Power BI refreshed against the result. Earlier partitions that had rolled off
+the upstream 30-file window were retained locally, as designed.
+
+Key dashboard values (whole dataset, no slicers): Listing Count 23,950 · Median Reference Value $27,043 · Median
+Mileage 43,819.5 · Median Days on Market 12 · Reduced Price Rate 22.58% · Hot Listing Rate 2.79% · Certified
+Inventory Share 14.55% · Median Reference-Value Spread $2,600. These describe a capped public sample, not the market.
+
+## Power BI dashboard
+`powerbi/Used_Car_Market_Intelligence.pbix` — Import mode over the five `warehouse` tables only, single-direction
+dimension-to-fact relationships, primary date relationship on `first_seen_date_key`. DAX measures are in
+`powerbi/dax_measures.dax`; connection, model and refresh notes in `powerbi/README.md`. The report is a Windows
+Power BI Desktop file; GitHub shows only the screenshots. The `.pbix` embeds the imported (CC BY-NC 4.0) data.
+
+![Market Overview](docs/images/page1_market_overview.png)
+![Vehicle Value and Mileage](docs/images/page2_vehicle_value_mileage.png)
+![Market Dynamics and Sellers](docs/images/page3_market_dynamics_sellers.png)
+
+## Engineering decisions and trade-offs
+- **JSONB raw layer, extraction in dbt:** schema drift in the source does not break loading; cost is a wider staging view.
+- **File identity = name + content hash:** partitions are revised after publication, so name alone would miss changes.
+- **Validate everything before writing anything:** one bad file fails the run with no partial raw state.
+- **Configuration-grain `dim_vehicle` with a deterministic surrogate:** `kbbVehicleId` was measured to be unstable
+  (1,414 of 9,268 ids span multiple configurations), so it is kept only as an attribute.
+- **Reference value, not price:** the honest label costs some "wow", but avoids implying data the sample lacks.
+- **Local-only scope:** single Postgres container, no cloud deployment, no streaming; fixtures cover paths the live source never exercises.
 
 ## Limitations and V2 ideas
-Small capped sample (not a market census); about 10% of fact listings (2,229 of 22,098) have no valid reference range; reference value is a KBB
+Small capped sample (not a market census); about 10% of fact listings (2,339 of 23,950) have no valid reference range; reference value is a KBB
 range, not a transaction or asking price; seller names are redacted. V2: richer incremental history if a longer-lived
 source becomes available, VIN-based enrichment only if a licensed VIN field exists.

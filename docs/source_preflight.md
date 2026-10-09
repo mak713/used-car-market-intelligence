@@ -23,7 +23,7 @@ Matches the card/`schema.json`. Actual Arrow types differ from the card's "float
 Premium/redacted fields (all values the string `[PREMIUM]`): `vin`, `salePrice`, `kbbFairPurchasePrice`,
 `sellerName`, `sellerPhone`, `sellerRating`, `sellerWebsite`, `images`, `listingUrl`.
 
-## Findings (24,608 rows total)
+## Findings (24,608 rows total; preflight at revision `1e325fd8…`, 30 partitions — a later revision added 5 partitions)
 | Check | Result |
 |---|---|
 | `salePrice`, `vin` usable? | **No — 100% `[PREMIUM]`.** No actual listing price analysis, no VIN/NHTSA enrichment in V1. |

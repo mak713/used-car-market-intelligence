@@ -19,7 +19,7 @@ Daily counts in the cohort trend reflect the sample's per-day cap, not market ac
 | 7 | `07_seller_concentration_by_state` | shares, `RANK`, cumulative window sum, HHI | 32 |
 | 8 | `08_first_seen_cohort_trends` | date dimension, cohorts, rolling windows | 30 |
 
-\*Measured on the warehouse built from source revision `1e325fd8…` (22,098 fact listings). All eight execute and
+\*Row counts and results measured on the warehouse built from source revision `1e325fd8…` (22,098 fact listings); the warehouse has since been refreshed to 23,950 listings, so re-running will give slightly different values. All eight execute and
 return non-empty results (`tests/integration/test_sql_analyses.py`). Result sanity: e.g. the mileage index falls
 monotonically with mileage for sedans/SUVs/trucks (SUV 0–24k 1.019 → 150k+ 0.641); trim premiums are positive for
 top trims (F-150 2023 Lariat +17.5%). These are descriptive, cross-sectional observations only.

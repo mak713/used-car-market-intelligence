@@ -1,9 +1,15 @@
 # Implementation status
 
-_Last updated: 2026-10-03. Authoritative spec: `docs/…Blueprint.docx`; project rules are kept in a local, gitignored agent file (not part of the published repo)._
+_Last updated: 2026-10-08. Authoritative spec: `docs/…Blueprint.docx`; project rules are kept in a local, gitignored agent file (not part of the published repo)._
 
 ## Current phase
-Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Phase 7 docs written. Remaining: Power BI Desktop work (human): .pbix, refresh, screenshots.
+**All phases (0–7) complete; all V1 acceptance criteria are met.** Power BI report built, refreshed and visually reviewed; `.pbix` and three screenshots committed. Sections below dated "as of Phase N" or describing the acceptance run are historical evidence for revision `1e325fd8…` (30 partitions, 24,608 raw / 22,098 fact); the latest state is in the next section.
+
+## Final state and Power BI refresh (2026-10-08)
+- Source later published 5 new partitions (2026-09-20..2026-09-24, revision `f9511a90cd443f814be64874baead99d9d20a850`). A normal pipeline run (`meta.pipeline_runs`: success, dbt success, smoke success) processed only those 5 files — 2,237 rows inserted, 0 updated — and the 30 older files were not reprocessed. Local history now spans 35 partitions (2026-08-21..2026-09-24).
+- Warehouse (queried after the refresh): raw 26,845; `fct_listings` 23,950 (Used 20,466, Certified 3,136, Third-Party Certified 348; 2,895 New excluded); market-value eligible 21,611; dim_vehicle 11,590; dim_seller 8,607; dim_geography 4,318; dim_date 48 (2026-08-21..2026-10-07); max `source_observation_count` still 1.
+- Power BI refresh succeeded against the warehouse (`powerbi/Used_Car_Market_Intelligence.pbix`); screenshots in `docs/images/`. Final dashboard values: Listing Count 23,950; Market-Value Eligible 21,611; Median Reference Value $27,043; Median Mileage 43,819.5; Median Days on Market 12; Reduced Price Rate 22.58%; Hot Listing Rate 2.79%; Certified Inventory Share 14.55%; Median Reference-Value Spread $2,600.
+- The full acceptance suite was not re-run after the refresh; `docs/acceptance_results.md` remains the point-in-time run on the original revision.
 
 ## Completed
 - Branch renamed `master` → `main` (baseline commit preserved; `.git/config.lock` is a sandbox
@@ -52,7 +58,7 @@ Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Pha
 - Phase 3: eight `sql/0N_*.sql` analyses all execute and return rows (`tests/integration/test_sql_analyses.py`); notes in `docs/sql_analysis.md`; EXPLAIN (ANALYZE, BUFFERS) of query 05 documented in `docs/explain/` (6,019 ms nested loop -> 67.5 ms after restructuring; cause = multi-column join mis-estimate, not stale stats).
 - Phase 4: Prefect flow `used_car_market_pipeline` (`src/orchestration/flow.py`, run: `HF_HOME=$PWD/.cache/hf .venv/bin/python -m src.orchestration.flow [--revision SHA] [--source-dir D] [--date-from/--date-to]`). Only the download task retries (2x, 5 s). Run state in `meta.pipeline_runs` (counters, dbt_status, smoke_status, error_summary). Prefect runs an ephemeral local server with state in gitignored `.prefect/`.
 - Phase 5: `scripts/run_acceptance.py` -> `docs/acceptance_results.md`: ACCEPTANCE PASS (clean bootstrap, idempotent rerun, real-partition incremental 21+9 files, invalid schema + corrected rerun, controlled dbt failure + corrected rerun, download retry 3 calls, pytest 40 passed). Pinned source revision 1e325fd8…; Hub head equalled it at run time.
-- Main DB left in the full built state (24,608 raw; 22,098 fact).
+- Main DB was left in the full built state (24,608 raw; 22,098 fact) at acceptance time; superseded by the refreshed state above.
 
 ## Post-audit corrections (final)
 - dbt reconciliation test and Prefect smoke check now compare `fct_listings` to `int_listings_deduped` filtered to the fact listing types (latest observation decides scope), not to any-historical in-scope raw observation.
@@ -60,11 +66,11 @@ Engineering Phases 0–5 complete & evidenced; Phase 6 handoff materials and Pha
 - Public setup uses `uv sync`; local agent files (`CLAUDE.md`, `.claude/`) are gitignored.
 - Re-verified: `pytest tests` 40 passed; `dbt build` PASS=54; acceptance re-run ACCEPTANCE PASS; all eight SQL analyses execute (`test_sql_analyses.py`).
 
-## Not verifiable here
-- Power BI refresh / .pbix / screenshots: needs Power BI Desktop (human).
+## Power BI (Phase 6) — complete
+Report built by the user in Power BI Desktop, refreshed after the new partitions loaded, and visually reviewed. The engineering agent did not open or parse the `.pbix`.
 
 ## Blockers
-None (next human step is Power BI Desktop, after Phase 6 materials exist).
+None.
 
-## Next (human)
-Build the report per `powerbi/README.md`. (Done by agent:  `powerbi/` handoff (views not required; relationship spec, DAX, page specs, Windows setup). Phase 7: README, architecture, data dictionary, final QA. Phase 6 materials in `powerbi/`; Phase 7 README, architecture, data dictionary, source_preflight.)
+## Next
+None for V1. Repository ready to push.

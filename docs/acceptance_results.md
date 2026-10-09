@@ -4,7 +4,8 @@ Run started 2026-10-03 23:46 UTC by `scripts/run_acceptance.py`. All values belo
 
 - Source: `rebrowser/autotrader-dataset`, pinned revision `1e325fd8d9d05895fc2d26a2eac5a36f3ef07487` (Hub head at run time: `1e325fd8d9d05895fc2d26a2eac5a36f3ef07487`).
 - Real-source behaviour (scenarios 1–3) is kept separate from synthetic-fixture behaviour (scenarios 4–7); the live source has no cross-file overlap, so upsert and dedupe are demonstrated on fixtures only.
-- **Not covered here:** Power BI refresh (requires Power BI Desktop; human verification).
+- **Point-in-time record** for revision `1e325fd8…`; later counts are in `docs/implementation_status.md`.
+- **Not covered here:** Power BI refresh — verified separately by the user (see `docs/implementation_status.md`).
 
 | Scenario | Result |
 |---|---|
