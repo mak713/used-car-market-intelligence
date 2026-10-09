@@ -51,3 +51,16 @@ Thumbs.db
 # Local agent artifacts
 CLAUDE.md
 .claude/
+
+# Sandbox overlay placeholders (character devices bound to /dev/null in the agent sandbox)
+/.bash_profile
+/.bashrc
+/.gitconfig
+/.gitmodules
+/.idea
+/.mcp.json
+/.profile
+/.ripgreprc
+/.vscode
+/.zprofile
+/.zshrc

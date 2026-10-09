@@ -57,7 +57,7 @@ refreshed. The `.pbix` embeds the imported data (CC BY-NC 4.0 — see root READM
   Median Reference Value, Slow-Moving Share.
 - Bar: top 10 `dim_seller[seller_id]` by Listing Count (visual filter `is_unknown_seller` = false), with Top 5 Seller Share card.
 - Table: slow-moving cohorts — `make_name`, `model_name`, Listing Count, Median Days on Market, Slow-Moving Share
-  (visual filter Listing Count >= 25, sort by Slow-Moving Share desc). Compare with `sql/04`.
+  (visual filter Listing Count >= 25, sort by Slow-Moving Share desc). Compare with `sql/04_slow_moving_inventory.sql`.
 
 ## 4. Measure checks (no slicers)
 
